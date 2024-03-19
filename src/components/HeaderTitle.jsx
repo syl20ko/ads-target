@@ -7,7 +7,7 @@ function HeaderTitle() {
       <div className="row align-items-center">
         <div className="col-6">
           <img
-            src="/ads-taget/logo-sylvain-caron.png"
+            src="./ads-taget/logo-sylvain-caron.png"
             className="logoSylvain"
             alt="Sylvain Caron"
           />
