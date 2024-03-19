@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from "react";
 import CSVUploader from "./components/CSVUploader";
 import HeaderTitle from "./components/HeaderTitle";
+import './App.css';
+
 
 const App = () => {
   const [data, setData] = useState([]);
