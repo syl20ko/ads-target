@@ -53,7 +53,7 @@ const App = () => {
               Objectifs, rentabilité & stratégies publicitaires
              <br />  Google Ads {"     "}
               <img
-            src="/CalculPubTool/adslogo.png"
+            src="/ads-taget/adslogo.png"
             className="logoAds"
             alt="google ads"
           />
@@ -66,10 +66,11 @@ const App = () => {
         <CSVUploader
           onDataProcessed={setData}
           onMetadataProcessed={setMetadata}
+          onUploadComplete={() => setIsUploaded(true)}
+
         />
       ) : (
         <>
-          {" "}
           <div>
             {metadata.metadataLines.map((line, index) => (
               <div key={index}>{line}</div>
