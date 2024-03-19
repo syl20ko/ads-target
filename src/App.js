@@ -53,7 +53,7 @@ const App = () => {
               Objectifs, rentabilité & stratégies publicitaires
              <br />  Google Ads {"     "}
               <img
-            src="/ads-taget/adslogo.png"
+            src="/ads-target/adslogo.png"
             className="logoAds"
             alt="google ads"
           />
