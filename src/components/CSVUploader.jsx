@@ -109,7 +109,7 @@ const CSVUploader = ({
     <div className="row mt-4">
       <div className="col-md-6 offset-md-3">
         <div className="card">
-          <div className="card-header">Importer votre fichier CSV</div>
+          <div className="card-header">Importez votre fichier CSV</div>
           <div className="card-body">
             {" "}
             <div className="text-center mb-4">

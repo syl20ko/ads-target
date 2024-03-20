@@ -49,7 +49,7 @@ const App = () => {
   const [isHeatmapActive, setIsHeatmapActive] = useState(true);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [isParetoActive, setIsParetoActive] = useState(false);
-  const [paretoValues, setParetoValues] = useState({});
+  const [paretoValues, setParetoValues] = useState([]);
 
   useEffect(() => {
     if (data.length > 0) {
@@ -68,7 +68,7 @@ const App = () => {
     }
   }, [data]);
 
-  const sortedData = data.sort((b, a) => {
+/*   const sortedData = data.sort((b, a) => {
     if (!sortConfig || !sortConfig.key) {
       return 0;
     }
@@ -88,20 +88,58 @@ const App = () => {
       return sortConfig.direction === "ascending" ? 1 : -1;
     }
     return 0;
-  });
+  }); */
 
   const requestSort = (key) => {
-    let direction = "ascending";
-    if (
-      sortConfig &&
-      sortConfig.key === key &&
-      sortConfig.direction === "ascending"
-    ) {
-      direction = "descending";
+    let direction = "descending";
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === "descending") {
+      direction = "ascending";
     }
     setSortConfig({ key, direction });
   };
 
+  // Fonction pour nettoyer et convertir les valeurs en nombre pour le tri
+  const cleanAndConvertToNumber = (value) => {
+    if (typeof value === 'string') {
+      return parseFloat(value.replace('%', '').replace('€', ''));
+    }
+    return value;
+  };
+
+  // Utilisation conditionnelle des données basée sur isParetoActive
+  const displayData = isParetoActive ? paretoValues : data;
+
+  // Tri et filtrage des données pour l'affichage
+  const filteredData = displayData
+    .filter((row) => row["Nom"].toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => {
+      if (!sortConfig || !sortConfig.key) {
+        return 0;
+      }
+      const key = sortConfig.key;
+      const aValue = cleanAndConvertToNumber(a[key]);
+      const bValue = cleanAndConvertToNumber(b[key]);
+      return (sortConfig.direction === "ascending" ? 1 : -1) * (aValue < bValue ? -1 : (aValue > bValue ? 1 : 0));
+    });
+
+
+
+  const togglePareto = () => {
+    setIsParetoActive(!isParetoActive);
+  };
+  let calculerTotalRevenusPareto = null;
+  let totalRevenusPareto = null;
+
+if (paretoValues) {
+   calculerTotalRevenusPareto = (paretoValues) => {
+    const totalRevenus = paretoValues.reduce((acc, article) => {
+      return acc + article["Revenu généré par l'article"];
+    }, 0); // Initialiser l'accumulateur à 0
+  
+    return totalRevenus;
+  };
+     totalRevenusPareto = calculerTotalRevenusPareto(paretoValues);
+}
   // Style pour les cellules du tableau
   const cellStyleDefault = {
     textAlign: "right",
@@ -116,39 +154,6 @@ const App = () => {
     color: "white",
     verticalAlign: "middle",
   };
-
-  const togglePareto = () => {
-    setIsParetoActive(!isParetoActive);
-  };
-
-  // Utilisation conditionnelle des données basée sur isParetoActive
-  const displayData = isParetoActive ? paretoValues : data;
-
-  /*   const filteredData = sortedData.filter((row) =>
-    row["Nom"].toLowerCase().includes(searchTerm.toLowerCase())
-  ); */
-
-  // Ensuite, utilisez displayData pour générer votre tableau au lieu de data directement
-  const filteredData = displayData
-    .sort((a, b) => {
-      // Votre logique de tri existante ici
-    })
-    .filter((row) =>
-      row["Nom"].toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-  console.log(paretoValues, "paretoValues");
-
-  const calculerTotalRevenusPareto = (paretoValues) => {
-    const totalRevenus = paretoValues.reduce((acc, article) => {
-      return acc + article["Revenu généré par l'article"];
-    }, 0); // Initialiser l'accumulateur à 0
-  
-    return totalRevenus;
-  };
-  
-  // Utilisation de la fonction
-  const totalRevenusPareto = calculerTotalRevenusPareto(paretoValues);
 
   
   return (
@@ -203,7 +208,7 @@ const App = () => {
                           className="form-check-label"
                           htmlFor="heatmapToggle"
                         >
-                          Activer la Heatmap
+                          Heatmap
                         </label>
                       </p>
                     </div>
@@ -220,7 +225,7 @@ const App = () => {
                           className="form-check-label"
                           htmlFor="paretoToggle"
                         >
-                          Activer la loi de Pareto
+                          Loi de Pareto
                         </label>
                       </p>
                     </div>
