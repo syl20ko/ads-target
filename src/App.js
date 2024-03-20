@@ -194,6 +194,7 @@ if (paretoValues) {
               </div>
               <div className="col-md-3 d-flex">
                 <div className="card flex-fill">
+                  <div className="card-header">Filtres</div>
                   <div className="card-body">
                     <div className="form-check">
                       <p>
