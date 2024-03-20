@@ -47,14 +47,28 @@ const App = () => {
   const [isUploaded, setIsUploaded] = useState(false);
   const [valueRanges, setValueRanges] = useState({});
   const [isHeatmapActive, setIsHeatmapActive] = useState(true);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [isParetoActive, setIsParetoActive] = useState(false);
+  const [paretoValues, setParetoValues] = useState({});
 
   useEffect(() => {
     if (data.length > 0) {
       setValueRanges(calculateValueRanges(data));
+      // Calcul du total des revenus générés par les articles
+      const total = data.reduce((acc, row) => {
+        // Assurez-vous que la valeur est une chaîne avant d'appeler .replace
+        const revenueString =
+          typeof row["Revenu généré par l'article"] === "number"
+            ? row["Revenu généré par l'article"].toString()
+            : row["Revenu généré par l'article"] || "0";
+        const revenue = parseFloat(revenueString.replace("€", "")) || 0;
+        return acc + revenue;
+      }, 0);
+      setTotalRevenue(total); // Mise à jour de l'état avec le total calculé
     }
   }, [data]);
 
-  const sortedData = data.sort((a, b) => {
+  const sortedData = data.sort((b, a) => {
     if (!sortConfig || !sortConfig.key) {
       return 0;
     }
@@ -88,10 +102,6 @@ const App = () => {
     setSortConfig({ key, direction });
   };
 
-  const filteredData = sortedData.filter((row) =>
-    row["Nom"].toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   // Style pour les cellules du tableau
   const cellStyleDefault = {
     textAlign: "right",
@@ -107,6 +117,40 @@ const App = () => {
     verticalAlign: "middle",
   };
 
+  const togglePareto = () => {
+    setIsParetoActive(!isParetoActive);
+  };
+
+  // Utilisation conditionnelle des données basée sur isParetoActive
+  const displayData = isParetoActive ? paretoValues : data;
+
+  /*   const filteredData = sortedData.filter((row) =>
+    row["Nom"].toLowerCase().includes(searchTerm.toLowerCase())
+  ); */
+
+  // Ensuite, utilisez displayData pour générer votre tableau au lieu de data directement
+  const filteredData = displayData
+    .sort((a, b) => {
+      // Votre logique de tri existante ici
+    })
+    .filter((row) =>
+      row["Nom"].toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+  console.log(paretoValues, "paretoValues");
+
+  const calculerTotalRevenusPareto = (paretoValues) => {
+    const totalRevenus = paretoValues.reduce((acc, article) => {
+      return acc + article["Revenu généré par l'article"];
+    }, 0); // Initialiser l'accumulateur à 0
+  
+    return totalRevenus;
+  };
+  
+  // Utilisation de la fonction
+  const totalRevenusPareto = calculerTotalRevenusPareto(paretoValues);
+
+  
   return (
     <>
       <HeaderTitle />
@@ -119,22 +163,22 @@ const App = () => {
             }}
             onMetadataProcessed={setMetadata}
             onUploadComplete={() => setIsUploaded(true)}
+            setParetoValues={setParetoValues}
           />
         ) : (
           <>
-              <div className="row mt-3 mb-3">
-                <div className="col-12">
-                  {" "}
-                  <button
-                    className="btn btn-primary btn-sm pt-0 pb-0 pl-1 pr-1"
-                    onClick={() => setIsUploaded(false)}
-                  >
-                    Importer un autre fichier
-                  </button>
-                </div>
-                <div className="col-md-3 card m-2">
+            <div className="row mt-3 mb-3 d-flex">
+              <div className="col-12 mb-3">
+                <button
+                  className="btn btn-primary btn-sm pt-0 pb-0 pl-1 pr-1"
+                  onClick={() => setIsUploaded(false)}
+                >
+                  Importer un autre fichier
+                </button>
+              </div>
+              <div className="col-md-3 d-flex">
+                <div className="card flex-fill">
                   <div className="card-body">
-                    {" "}
                     {Object.entries(metadata.metadata).map(
                       ([key, value], index) => (
                         <div key={index}>{`${key}: ${value}`}</div>
@@ -142,9 +186,10 @@ const App = () => {
                     )}
                   </div>
                 </div>
-                <div className="col-md-3 card m-2">
+              </div>
+              <div className="col-md-3 d-flex">
+                <div className="card flex-fill">
                   <div className="card-body">
-                    {" "}
                     <div className="form-check">
                       <p>
                         <input
@@ -162,23 +207,93 @@ const App = () => {
                         </label>
                       </p>
                     </div>
+                    <div className="form-check">
+                      <p>
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          checked={isParetoActive}
+                          onChange={togglePareto}
+                          id="paretoToggle"
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor="paretoToggle"
+                        >
+                          Activer la loi de Pareto
+                        </label>
+                      </p>
+                    </div>
                   </div>
                 </div>
-              
               </div>
-              <div className="row">
-                  <div className="col-3 ">
-                    <input
-                      style={{ width: "100%" }}
-                      type="text"
-                      className="form-control"
-                      placeholder="Rechercher par Nom ..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+              <div className="col-md-3 d-flex">
+                <div className="card flex-fill">
+                  <div className="card-body">
+                    <div className="total-revenue text-center">
+                      <h3>
+                        <span
+                          style={{
+                            color: "#4C86F9",
+                            fontWeight: "bold",
+                            fontSize: "30px",
+                          }}
+                        >
+                          {data.length}
+                        </span>
+                      </h3>
+                      <hr />
+                      <p> Nombre d'items </p>
+                    </div>
                   </div>
                 </div>
-           
+              </div>
+              <div className="col-md-3 d-flex">
+                <div className="card flex-fill">
+                  <div className="card-body">
+                    <div className="total-revenue text-center">
+                      <h3>
+                        <span
+                          style={{
+                            color: "#49A84C",
+                            fontWeight: "bold",
+                            fontSize: "30px",
+                          }}
+                        >
+                          {totalRevenue.toFixed(2)}€
+                        </span>
+                      </h3>
+                      <hr />
+                      <p> Total des revenus générés </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {isParetoActive && (
+                <div className="col-md-12 text-center mt-3">
+                  <div className="alert alert-success">
+                    <h4>Loi de Pareto activée</h4>
+                    <p> <span style={{color : "black", fontWeight : "bold", textDecoration : "underline"}}>80% de vos revenus</span>  sont issus <span style={{color : "black", fontWeight : "bold", textDecoration : "underline"}}>de 20% de vos produits</span></p>
+                    <hr/>
+                    <p>Dans le tableau ci-dessous, <br/> vous trouverez les <span style={{color : "black", fontWeight : "bold", textDecoration : "underline"}}>{paretoValues.length} lignes qui génèrent {totalRevenusPareto.toFixed(2)}€</span></p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="row">
+              <div className="col-3 ">
+                <input
+                  style={{ width: "100%" }}
+                  type="text"
+                  className="form-control"
+                  placeholder="Rechercher par Nom ..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+
             <table className="table table-striped mt-3">
               <thead className="table-dark">
                 <tr>
